@@ -1,7 +1,7 @@
 pub mod generator;
 pub mod selector;
 
-use selector::Selector;
+use selector::{Selector, SelectorState};
 
 /// The type of a given [`Token`].
 #[derive(Debug)]
@@ -9,10 +9,10 @@ pub enum TokenType {
     /// A direct string of Rust code:
     ///
     /// ```text
-    /// <let a = 1>
+    /// #let a = 1
     /// ```
     ///
-    /// Begins with `<` and ends with `>`.
+    /// Begins with `#`.
     RustString,
     /// A CSS selector which will be transformed into an HTML element:
     ///
@@ -24,14 +24,6 @@ pub enum TokenType {
     /// everything else on the line will be treated as the `innerHTML`, and the
     /// element will be closed as well.
     Selector,
-    /// A closing tag
-    ///
-    /// ```text
-    /// @element
-    /// ```
-    ///
-    /// Begins with `@`.
-    End,
     /// Raw text:
     ///
     /// ```text
@@ -49,34 +41,43 @@ pub struct Token {
     pub raw: String,
     /// The HTML string of the token.
     pub html: String,
+    /// The indent level of the token.
+    pub indent: usize,
+    /// The line number the token is found on.
+    pub line: i32,
+    /// The selector of the token. Only applies to [`TokenType::Selector`].
+    pub selector: Option<SelectorState>,
 }
 
 impl Token {
+    /// Create a [`Token`] given its `indent` and `line` value.
+    pub fn from_indent_ln(indent: usize, line: i32) -> Self {
+        Self {
+            r#type: TokenType::Raw,
+            raw: "\n".to_string(),
+            html: "\n".to_string(),
+            indent,
+            line,
+            selector: None,
+        }
+    }
+
     /// Create a [`Token`] from a given [`String`] value,
-    pub fn from_string(value: String) -> Option<Self> {
+    pub fn from_string(value: String, indent: usize, line: i32) -> Option<Self> {
         let mut chars = value.chars();
+
         match match chars.next() {
             Some(c) => c,
             None => {
-                return Some(Self {
-                    r#type: TokenType::Raw,
-                    raw: "\n".to_string(),
-                    html: "\n".to_string(),
-                });
+                return Some(Self::from_indent_ln(indent, line));
             }
         } {
-            '<' => {
+            '#' => {
                 // starting with an opening sign; rust data
                 // not much real parsing to do here
                 let mut raw = String::new();
 
                 while let Some(char) = chars.next() {
-                    // enforce ending char to close
-                    if char == '>' {
-                        break;
-                    }
-
-                    // push char
                     raw.push(char);
                 }
 
@@ -84,6 +85,9 @@ impl Token {
                     r#type: TokenType::RustString,
                     raw,
                     html: String::new(),
+                    indent,
+                    line,
+                    selector: None,
                 });
             }
             '%' => {
@@ -117,22 +121,11 @@ impl Token {
                         // inline element
                         format!("{}{data}</{}>", selector.clone().render(), selector.tag)
                     } else {
-                        selector.render()
+                        selector.clone().render()
                     },
-                });
-            }
-            '@' => {
-                // starting with a ending sign; end
-                let mut raw = String::new();
-
-                while let Some(char) = chars.next() {
-                    raw.push(char);
-                }
-
-                return Some(Self {
-                    r#type: TokenType::End,
-                    raw: raw.clone(),
-                    html: format!("</{raw}>"),
+                    indent,
+                    line,
+                    selector: Some(selector),
                 });
             }
             _ => {
@@ -141,6 +134,9 @@ impl Token {
                     r#type: TokenType::Raw,
                     raw: value.clone(),
                     html: value,
+                    indent,
+                    line,
+                    selector: None,
                 });
             }
         }
@@ -203,7 +199,23 @@ impl Parser {
             None => return None,
         };
 
+        if line.is_empty() {
+            return Some(Token::from_indent_ln(0, self.1.line_number));
+        }
+
+        // get indent
+        let mut indent: usize = 0;
+        let mut chars = line.chars();
+
+        while let Some(char) = chars.next() {
+            if (char != ' ') & (char != '\t') {
+                break;
+            }
+
+            indent += 1;
+        }
+
         // parse token
-        Token::from_string(line.trim().to_owned())
+        Token::from_string(line.trim().to_owned(), indent, self.1.line_number)
     }
 }

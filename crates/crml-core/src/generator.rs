@@ -81,23 +81,61 @@ pub fn {name}(page: {props_type}) -> String {{
         )
         .to_string();
 
+        let mut last_indent_level: usize = 0;
+        let mut last_tag: String = String::new();
+        let whitespace_sensitive = &["script", "style"]; // these must be closed manually
+
         while let Some(mut token) = self.0.next() {
+            if (token.indent < last_indent_level)
+                && !last_tag.is_empty()
+                && !whitespace_sensitive.contains(&last_tag.as_str())
+            {
+                // automatically close previous element
+                out.push_str(&format!(
+                    "crml_rendered.push_str(&format!(\"</{last_tag}>\"));\n"
+                ));
+
+                last_tag = String::new();
+            }
+
+            last_indent_level = token.indent;
             match token.r#type {
                 TokenType::RustString => {
                     if !token.raw.ends_with("{") && token.raw != "}" {
                         token.raw += ";";
                     }
 
-                    out.push_str(&(token.raw + "\n"));
+                    out.push_str(&format!("{}//line: {}\n", token.raw, token.line));
                 }
                 _ => {
                     if token.raw == "\n" {
                         continue;
+                    } else if token.raw == "end" {
+                        out.push_str(&format!(
+                            "crml_rendered.push_str(&format!(\"</{last_tag}>\"));\n"
+                        ));
+
+                        continue;
+                    }
+
+                    if let Some(selector) = token.selector {
+                        last_tag = selector.tag;
+                    }
+
+                    if token.html.contains("</") {
+                        // token closed tag itself
+                        last_tag = String::new();
+                    }
+
+                    if whitespace_sensitive.contains(&last_tag.as_str()) {
+                        // whitespace sensitive blocks do not accept format params
+                        token.html = token.html.replace("{", "{{").replace("}", "}}")
                     }
 
                     out.push_str(&format!(
-                        "crml_rendered.push_str(&format!(\"{}\"));\n",
-                        token.html.replace('"', "\\\"")
+                        "crml_rendered.push_str(&format!(\"{}\"));//line: {}\n",
+                        token.html.replace('"', "\\\""),
+                        token.line
                     ));
                 }
             }

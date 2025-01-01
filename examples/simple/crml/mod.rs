@@ -15,13 +15,19 @@ use data::*;
 /// ```
 pub fn index(page: TestProps) -> String {
     let mut crml_rendered = String::new();
-let a = page.a;
-let b = 2;
-crml_rendered.push_str(&format!("<div class=\"class \" id=\"id\" attr=\"value\">"));
-crml_rendered.push_str(&format!("a is {a}, b is {b}"));
+ let a = page.a;//line: 0
+ let b = 2;//line: 1
+crml_rendered.push_str(&format!("<div class=\"class \" id=\"id\" attr=\"value\">"));//line: 3
+crml_rendered.push_str(&format!("a is {a}, b is {b}"));//line: 4
 crml_rendered.push_str(&format!("</div>"));
-if a != b {
-crml_rendered.push_str(&format!("<h1   > a is not equal to b ({a} != {b})</h1>"));
-}
+ if a != b {//line: 6
+crml_rendered.push_str(&format!("<h1   > a is not equal to b ({a} != {b})</h1>"));//line: 7
+crml_rendered.push_str(&format!("<script   >"));//line: 9
+crml_rendered.push_str(&format!("alert(\"Hello, world!\");"));//line: 10
+crml_rendered.push_str(&format!("function test(a, b) {{"));//line: 12
+crml_rendered.push_str(&format!("return a + b;"));//line: 13
+crml_rendered.push_str(&format!("}}"));//line: 14
+crml_rendered.push_str(&format!("</script>"));
+ };//line: 16
 crml_rendered
 }
