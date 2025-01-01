@@ -1,0 +1,17 @@
+[package]
+name = "crml-core"
+version = "0.1.0"
+edition = "2024"
+description = "Crab Markup Language core"
+authors = ["trisuaso"]
+license = "MIT"
+repository = "https://github.com/trisuaso/crml"
+
+[dependencies]
+
+[lib]
+doctest = false
+
+[[example]]
+name = "simple"
+path = "../../examples/simple/main.rs"

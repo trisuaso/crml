@@ -1,0 +1,10 @@
+<let a = page.a>
+<let b = 2>
+
+%div.class#id[attr="value"]
+    a is {a}, b is {b}
+@div
+
+<if a != b {>
+    %h1' a is not equal to b ({a} != {b})
+<}>
