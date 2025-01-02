@@ -1,13 +1,16 @@
 publish-lib:
     cargo publish --package crml-core --allow-dirty
 
-publish-bin:
+publish-derive:
+    cargo publish --package crml-derive --allow-dirty
+
+publish-main:
     cargo publish --package crml --allow-dirty
 
 publish:
     just publish-lib
-    just publish-bin
+    just publish-derive
+    just publish-main
 
 test:
-    cargo run --bin crml
     cargo run --example simple

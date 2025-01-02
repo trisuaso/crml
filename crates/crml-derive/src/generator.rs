@@ -1,15 +1,10 @@
-use crate::{TokenStream, TokenType, Parser};
+use crml_core::{TokenStream, TokenType, Parser};
 use std::{fs::File, io::Read};
 
 /// Generate valid Rust from a given [`TokenStream`].
 pub struct Generator(TokenStream);
 
 impl Generator {
-    /// Create a new [`Generator`].
-    pub fn new(input: TokenStream) -> Self {
-        Self(input)
-    }
-
     /// Create a new [`Generator`] from a [`File`].
     pub fn from_file(mut file: File) -> Self {
         // read file
@@ -62,24 +57,8 @@ impl Generator {
     /// //! crml/data.rs - this should be written before building crml templates
     /// pub use crate::TestProps;
     /// ```
-    pub fn consume(mut self, name: String, props_type: String) -> String {
-        let mut out = format!(
-            "/// Render the `{name}.crml` template with the given [`{props_type}`] properties.
-///
-/// # Arguments
-/// * `page` - [`{props_type}`]
-///
-/// # Returns
-/// Rendered string.
-///
-/// # Example
-/// ```rust
-/// println!(\"rendered: {{}}\", {name}({props_type}::default()));
-/// ```
-pub fn {name}(page: {props_type}) -> String {{
-    let mut crml_rendered = String::new();\n"
-        )
-        .to_string();
+    pub fn consume(mut self) -> String {
+        let mut out = format!("let mut crml_rendered = String::new();\n").to_string();
 
         let mut last_indent_level: usize = 0;
         let mut last_tag: String = String::new();
@@ -147,6 +126,6 @@ pub fn {name}(page: {props_type}) -> String {{
             }
         }
 
-        format!("{out}crml_rendered\n}}\n")
+        format!("{out}\ncrml_rendered\n")
     }
 }

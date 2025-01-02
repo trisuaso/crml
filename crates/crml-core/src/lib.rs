@@ -1,7 +1,10 @@
-pub mod generator;
 pub mod selector;
-
 use selector::{Selector, SelectorState};
+
+/// A trait to render template structs.
+pub trait Template {
+    fn render(self) -> String;
+}
 
 /// The type of a given [`Token`].
 #[derive(Debug)]
@@ -42,6 +45,14 @@ pub enum TokenType {
     /// everything else on the line will be treated as the `innerHTML`, and the
     /// element will be closed as well.
     Selector,
+    /// Raw HTML data:
+    ///
+    /// ```text
+    /// @<!DOCTYPE html>
+    /// ```
+    ///
+    /// Begins with `@`.
+    Html,
     /// Raw text:
     ///
     /// ```text
@@ -137,8 +148,8 @@ impl Token {
                 let mut inline: bool = false;
 
                 while let Some(char) = chars.next() {
-                    // check for inline char (equal sign)
-                    if char == '=' {
+                    // check for inline char (single quote)
+                    if char == '\'' {
                         inline = true;
                         break;
                     }
@@ -166,6 +177,23 @@ impl Token {
                     indent,
                     line,
                     selector: Some(selector),
+                });
+            }
+            '@' => {
+                // begins with @; raw html
+                let mut raw = String::new();
+
+                while let Some(char) = chars.next() {
+                    raw.push(char);
+                }
+
+                return Some(Self {
+                    r#type: TokenType::Html,
+                    raw: raw.clone(),
+                    html: raw,
+                    indent,
+                    line,
+                    selector: None,
                 });
             }
             _ => {

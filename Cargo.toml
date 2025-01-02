@@ -1,9 +1,6 @@
 [workspace]
 resolver = "2"
-members = [
-    "crates/crml-core",
-    "crates/crml",
-]
+members = ["crates/crml", "crates/crml-core", "crates/crml-derive"]
 
 [profile.release]
 opt-level = "z"

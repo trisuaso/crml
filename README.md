@@ -14,13 +14,17 @@ You can run this example for yourself with the following commands:
 just test
 ```
 
+The only key you need to provide in this file is the directory where your templates are stored.
+
+```json
+{
+    "root_dir": "./templates"
+}
+```
+
 ## Usage
 
-You can use the `crml` CLI to read your relative `crml.json` file and build your templates.
-
-```bash
-crml
-```
+A very simple usage example is shown in the [example](https://github.com/trisuaso/crml/blob/master/examples/simple).
 
 ## Attribution
 

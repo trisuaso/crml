@@ -4,9 +4,16 @@ version = 4
 
 [[package]]
 name = "crml"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
- "crml-core 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "crml-core 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "crml-derive 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "crml-core"
+version = "0.1.4"
+dependencies = [
  "pathbufd",
  "serde",
  "serde_json",
@@ -14,13 +21,42 @@ dependencies = [
 
 [[package]]
 name = "crml-core"
-version = "0.1.3"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7c17ee955fba3fbe8e8ad135c1064c5d75b88cd431d76b2266012f3c82c5d02e"
+dependencies = [
+ "pathbufd",
+ "serde",
+ "serde_json",
+]
 
 [[package]]
-name = "crml-core"
-version = "0.1.3"
+name = "crml-derive"
+version = "0.1.4"
+dependencies = [
+ "crml-core 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pathbufd",
+ "proc-macro2",
+ "quote",
+ "serde",
+ "serde_json",
+ "syn",
+]
+
+[[package]]
+name = "crml-derive"
+version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "031dd015713481a56b0ec58f38c3d1ea3e5253ed68090b63d4d0efad3df43924"
+checksum = "d192c00acdbae700b90d96d31c1455a650a916808177efb4aa13970d79307467"
+dependencies = [
+ "crml-core 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pathbufd",
+ "proc-macro2",
+ "quote",
+ "serde",
+ "serde_json",
+ "syn",
+]
 
 [[package]]
 name = "itoa"
@@ -101,9 +137,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "2.0.93"
+version = "2.0.94"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9c786062daee0d6db1132800e623df74274a0a87322d8e183338e01b3d98d058"
+checksum = "987bc0be1cdea8b10216bd06e2ca407d40b9543468fafd3ddfb02f36e77f71f3"
 dependencies = [
  "proc-macro2",
  "quote",
