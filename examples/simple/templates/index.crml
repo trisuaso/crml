@@ -10,6 +10,13 @@
         %div.class#id[attr="value"]
             a is {a}, b is {b}
 
+        %r:html
+            <b>This block contains unsanitized, raw HTML</b>
+            <script>
+                console.log(This is another way to use whitespace-sensitive elements.");
+            </script>
+        %/r:html
+
         - if a != b {
             %h1'a is not equal to b ({a} != {b})
 
@@ -19,12 +26,12 @@
             // elements which may use special characters need to include "end" to close them
             // (script, style)
             %script
-                alert("Hello, world!");
+                console.log("Hello, world!");
 
                 function test(a, b) {
                     return a + b;
                 }
-            end
+            %/script
         - } else {
             %h1' a is equal to b ({a} == {b})
         - }

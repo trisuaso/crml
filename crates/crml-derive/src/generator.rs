@@ -1,6 +1,8 @@
 use crml_core::{TokenStream, TokenType, Parser};
 use std::{fs::File, io::Read};
 
+static RAW_BLOCK_TAG_PREFIX: &str = "r:";
+
 /// Generate valid Rust from a given [`TokenStream`].
 pub struct Generator(TokenStream);
 
@@ -71,6 +73,7 @@ impl Generator {
             if (token.indent < last_indent_level)
                 && !last_tag.is_empty()
                 && !whitespace_sensitive.contains(&last_tag.as_str())
+                && !last_tag.starts_with(RAW_BLOCK_TAG_PREFIX)
             {
                 // automatically close previous element
                 out.push_str(&format!(
@@ -104,36 +107,53 @@ impl Generator {
                     if token.raw == "\n" {
                         out.push_str(&format!("crml_rendered.push_str(\"\\n\");\n"));
                         continue;
-                    } else if token.raw == "end" {
-                        out.push_str(&format!(
-                            "crml_rendered.push_str(&format!(\"</{last_tag}>\"));\n"
-                        ));
-
-                        continue;
                     }
 
                     if let Some(selector) = token.selector {
                         if !selector.tag.starts_with("/") {
                             last_tags.push(selector.tag.clone());
-                            last_tag = selector.tag;
+                            last_tag = selector.tag.clone();
+
+                            if selector.tag.starts_with(RAW_BLOCK_TAG_PREFIX) {
+                                // don't actually render this!
+                                continue;
+                            }
                         } else {
                             last_tags.pop();
+
+                            if selector
+                                .tag
+                                .starts_with(&format!("/{RAW_BLOCK_TAG_PREFIX}"))
+                            {
+                                // don't actually render this!
+                                continue;
+                            }
                         }
                     }
 
-                    if token.html.contains("</") {
+                    if token.html.contains("</") && !last_tag.starts_with(RAW_BLOCK_TAG_PREFIX) {
                         // token closed tag itself
                         last_tags.pop();
                     }
 
-                    if whitespace_sensitive.contains(&last_tag.as_str()) {
+                    if whitespace_sensitive.contains(&last_tag.as_str())
+                        | last_tag.starts_with(RAW_BLOCK_TAG_PREFIX)
+                    {
                         // whitespace sensitive blocks do not accept format params
                         token.html = token.html.replace("{", "{{").replace("}", "}}")
                     }
 
                     out.push_str(&format!(
                         "crml_rendered.push_str(&format!(\"{}\"));//line: {}\n",
-                        token.html.replace('"', "\\\""),
+                        if last_tag.starts_with(RAW_BLOCK_TAG_PREFIX) {
+                            // we need to use the raw HTML value and NOT the escaped one
+                            // elements starting with RAW_BLOCK_TAG_PREFIX are special and shouldn't *actually*
+                            // be rendered the page... this is an alternative to lines starting
+                            // with "@"
+                            token.raw.replace('"', "\\\"")
+                        } else {
+                            token.html.replace('"', "\\\"")
+                        },
                         token.line
                     ));
                 }
