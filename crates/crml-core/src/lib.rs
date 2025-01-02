@@ -1,5 +1,6 @@
 pub mod selector;
 use selector::{Selector, SelectorState};
+use ammonia::Builder;
 
 /// A trait to render template structs.
 pub trait Template {
@@ -198,10 +199,11 @@ impl Token {
             }
             _ => {
                 // no recognizable starting character; raw data
+                let sanitizer = Builder::new();
                 return Some(Self {
                     r#type: TokenType::Raw,
                     raw: value.clone(),
-                    html: value,
+                    html: sanitizer.clean(&value).to_string(),
                     indent,
                     line,
                     selector: None,

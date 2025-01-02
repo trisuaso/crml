@@ -35,11 +35,28 @@ use quote::{quote, ToTokens};
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
 
-fn get_file(file: String) -> File {
+fn get_file(file: &str) -> File {
     File::open(PathBufD::current().extend(&[CONFIG.root_dir.to_string(), format!("{}.crml", file)]))
         .expect("failed to read included file")
 }
 
+// yes this is an attribute macro and not a derive macro, it used to be derive
+/// Mark a struct as a template and provide the name of the template file it uses.
+///
+/// # Example
+/// ```rust
+/// use crml::{template, Template}; // import template macro *and* Template trait
+///
+/// #[template("mycrmlfile")]
+/// struct MyStruct {
+///     a: i32
+/// }
+///
+/// fn main() {
+///     // the Template trait provides .render()
+///     println!("rendered: {}", MyStruct { a: 1 }.render());
+/// }
+/// ```
 #[proc_macro_attribute]
 pub fn template(args: TokenStream, input: TokenStream) -> TokenStream {
     // parse args
@@ -54,10 +71,29 @@ pub fn template(args: TokenStream, input: TokenStream) -> TokenStream {
     input.to_tokens(&mut struct_tokens);
 
     // read file into generator
-    let generated: TokenStream2 = generator::Generator::from_file(get_file(file_name))
-        .consume()
-        .parse()
-        .unwrap();
+    let generated = generator::Generator::from_file(get_file(&file_name)).consume();
+
+    let generated_tokens: TokenStream2 = match generated.parse() {
+        Ok(t) => t,
+        Err(e) => {
+            // debug outputs
+            if std::fs::exists("crml_dbg").unwrap() == true {
+                println!(
+                    "Debug directory found. Check \"crml_dbg/{}.rs\" to debug template.",
+                    file_name
+                );
+
+                std::fs::write(
+                    format!("crml_dbg/{file_name}.rs"),
+                    format!("fn debug() {{\n{generated}\n}}"),
+                )
+                .unwrap()
+            }
+
+            // panic :(
+            panic!("{}", e.to_string())
+        }
+    };
 
     // build output
     let expanded = quote! {
@@ -65,11 +101,16 @@ pub fn template(args: TokenStream, input: TokenStream) -> TokenStream {
 
         impl crml::Template for #struct_ident {
             fn render(self) -> String {
-                #generated
+                #generated_tokens
             }
         }
     };
 
+    // debug outputs
+    if std::fs::exists("crml_dbg").unwrap() == true {
+        std::fs::write(format!("crml_dbg/{file_name}.rs"), expanded.to_string()).unwrap()
+    }
+
     // return
-    TokenStream::from(expanded)
+    expanded.into()
 }

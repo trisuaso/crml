@@ -59,7 +59,7 @@ impl SelectorState {
         let mut attributes_string = String::new();
 
         if let Some(classes) = self.classes {
-            class_string = "class=\"".to_string();
+            class_string = " class=\"".to_string();
 
             for class in classes {
                 class_string.push_str(&(class + " "));
@@ -69,19 +69,16 @@ impl SelectorState {
         }
 
         if let Some(id) = self.id {
-            id_string = format!("id=\"{id}\"");
+            id_string = format!(" id=\"{id}\"");
         }
 
         if let Some(attributes) = self.attributes {
             for attribute in attributes {
-                attributes_string.push_str(&attribute);
+                attributes_string.push_str(&format!(" {attribute}"));
             }
         }
 
-        format!(
-            "<{} {class_string} {id_string} {attributes_string}>",
-            self.tag
-        )
+        format!("<{}{class_string}{id_string}{attributes_string}>", self.tag)
     }
 }
 

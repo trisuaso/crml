@@ -1,22 +1,32 @@
 @<!DOCTYPE html>
-- let a = self.a
-- let b = 2
-%div.class#id[attr="value"]
-    a is {a}, b is {b}
+%html
+    %head
+        %title'Document Title
+    %/head
 
-- if a != b {
-    %h1' a is not equal to b ({a} != {b})
+    %body
+        - let a = self.a
+        - let b = 2
+        %div.class#id[attr="value"]
+            a is {a}, b is {b}
 
-    // include other template
-    = OtherProps { c: 3 }.render()
+        - if a != b {
+            %h1'a is not equal to b ({a} != {b})
 
-    // elements which may use special characters need to include "end" to close them
-    // (script, style)
-    %script
-        alert("Hello, world!");
+            // include other template
+            = OtherProps { c: 3 }.render()
 
-        function test(a, b) {
-            return a + b;
-        }
-    end
-- }
+            // elements which may use special characters need to include "end" to close them
+            // (script, style)
+            %script
+                alert("Hello, world!");
+
+                function test(a, b) {
+                    return a + b;
+                }
+            end
+        - } else {
+            %h1' a is equal to b ({a} == {b})
+        - }
+    %/body
+%/html

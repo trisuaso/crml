@@ -1,3 +1,9 @@
-- let c = self.c
+- let mut c = self.c
 %div[style="background: red; color: white"]
     This is from another template. c = {c}
+
+- c = 4
+%pre.class#id1[attr="value"][secondattr="value1"]
+    %code
+        changed mutable c to {c}
+%/pre
