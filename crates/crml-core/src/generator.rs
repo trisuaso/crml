@@ -107,6 +107,12 @@ pub fn {name}(page: {props_type}) -> String {{
 
                     out.push_str(&format!("{}//line: {}\n", token.raw, token.line));
                 }
+                TokenType::PushedRustString => {
+                    out.push_str(&format!(
+                        "crml_rendered.push_str(&{});//line: {}\n",
+                        token.raw, token.line
+                    ));
+                }
                 _ => {
                     if token.raw == "\n" {
                         continue;
@@ -141,6 +147,6 @@ pub fn {name}(page: {props_type}) -> String {{
             }
         }
 
-        format!("{out}crml_rendered\n}}")
+        format!("{out}crml_rendered\n}}\n")
     }
 }

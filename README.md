@@ -11,8 +11,7 @@ Your project must contain a `crml.json` file in order to tell the CLI how to bui
 You can run this example for yourself with the following commands:
 
 ```bash
-cargo run --bin crml # build mod.rs
-cargo run --example simple # run example
+just test
 ```
 
 ## Usage

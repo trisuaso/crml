@@ -7,3 +7,7 @@ publish-bin:
 publish:
     just publish-lib
     just publish-bin
+
+test:
+    cargo run --bin crml
+    cargo run --example simple

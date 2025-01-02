@@ -9,11 +9,25 @@ pub enum TokenType {
     /// A direct string of Rust code:
     ///
     /// ```text
-    /// #let a = 1
+    /// # let a = 1
     /// ```
     ///
     /// Begins with `#`.
     RustString,
+    /// A direct string of Rust code which is pushed to the output HTML:
+    ///
+    /// ```text
+    /// $ (a + b).to_string()
+    ///
+    /// # fn get_new_string() {
+    /// #     String::new()
+    /// # }
+    ///
+    /// $ get_new_string()
+    /// ```
+    ///
+    /// Begins with `+`.
+    PushedRustString,
     /// A CSS selector which will be transformed into an HTML element:
     ///
     /// ```text
@@ -83,6 +97,24 @@ impl Token {
 
                 return Some(Self {
                     r#type: TokenType::RustString,
+                    raw,
+                    html: String::new(),
+                    indent,
+                    line,
+                    selector: None,
+                });
+            }
+            '$' => {
+                // starting with an opening sign; rust data
+                // not much real parsing to do here
+                let mut raw = String::new();
+
+                while let Some(char) = chars.next() {
+                    raw.push(char);
+                }
+
+                return Some(Self {
+                    r#type: TokenType::PushedRustString,
                     raw,
                     html: String::new(),
                     indent,

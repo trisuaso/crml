@@ -1,0 +1,4 @@
+# let c = page.c
+
+%span
+    {c}

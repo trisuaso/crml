@@ -1,5 +1,8 @@
 {
     "output_dir": "examples/simple/crml",
     "root_dir": "examples/simple/templates",
-    "include": [["index", "TestProps"]]
+    "include": [
+        ["index", "TestProps"],
+        ["other", "OtherProps"]
+    ]
 }
