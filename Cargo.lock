@@ -4,9 +4,9 @@ version = 4
 
 [[package]]
 name = "crml"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
- "crml-core 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "crml-core 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "pathbufd",
  "serde",
  "serde_json",
@@ -14,13 +14,13 @@ dependencies = [
 
 [[package]]
 name = "crml-core"
-version = "0.1.2"
+version = "0.1.3"
 
 [[package]]
 name = "crml-core"
-version = "0.1.2"
+version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "597759f76bc39fabcc8dd75c9008633a10a8bb892c1797b23535322cd91d759f"
+checksum = "031dd015713481a56b0ec58f38c3d1ea3e5253ed68090b63d4d0efad3df43924"
 
 [[package]]
 name = "itoa"

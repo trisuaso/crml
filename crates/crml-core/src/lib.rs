@@ -6,27 +6,31 @@ use selector::{Selector, SelectorState};
 /// The type of a given [`Token`].
 #[derive(Debug)]
 pub enum TokenType {
+    /// A comment in the code. Completely ignored.
+    ///
+    /// Starts with `/`.
+    Comment,
     /// A direct string of Rust code:
     ///
     /// ```text
-    /// # let a = 1
+    /// - let a = 1
     /// ```
     ///
-    /// Begins with `#`.
+    /// Begins with `-`.
     RustString,
     /// A direct string of Rust code which is pushed to the output HTML:
     ///
     /// ```text
-    /// $ (a + b).to_string()
+    /// = (a + b).to_string()
     ///
-    /// # fn get_new_string() {
-    /// #     String::new()
-    /// # }
+    /// - fn get_new_string() {
+    /// -     String::new()
+    /// - }
     ///
-    /// $ get_new_string()
+    /// = get_new_string()
     /// ```
     ///
-    /// Begins with `+`.
+    /// Begins with `=`.
     PushedRustString,
     /// A CSS selector which will be transformed into an HTML element:
     ///
@@ -86,7 +90,11 @@ impl Token {
                 return Some(Self::from_indent_ln(indent, line));
             }
         } {
-            '#' => {
+            '/' => {
+                // comment; ignore
+                return Some(Self::from_indent_ln(indent, line));
+            }
+            '-' => {
                 // starting with an opening sign; rust data
                 // not much real parsing to do here
                 let mut raw = String::new();
@@ -104,7 +112,7 @@ impl Token {
                     selector: None,
                 });
             }
-            '$' => {
+            '=' => {
                 // starting with an opening sign; rust data
                 // not much real parsing to do here
                 let mut raw = String::new();
@@ -129,8 +137,8 @@ impl Token {
                 let mut inline: bool = false;
 
                 while let Some(char) = chars.next() {
-                    // check for inline char
-                    if char == '\'' {
+                    // check for inline char (equal sign)
+                    if char == '=' {
                         inline = true;
                         break;
                     }

@@ -1,17 +1,17 @@
-# let a = page.a
-# let b = 2
+- let a = page.a
+- let b = 2
 
 %div.class#id[attr="value"]
     a is {a}, b is {b}
 
-# if a != b {
-    %h1' a is not equal to b ({a} != {b})
+- if a != b {
+    %h1= a is not equal to b ({a} != {b})
 
-    <!-- include other template -->
-    $ other(OtherProps { c: b + 1 })
+    // include other template
+    = other(OtherProps { c: b + 1 })
 
-    <!-- elements which may use special characters need to include "end" to close them -->
-    <!-- (script, style) -->
+    // elements which may use special characters need to include "end" to close them
+    // (script, style)
     %script
         alert("Hello, world!");
 
@@ -19,4 +19,4 @@
             return a + b;
         }
     end
-# }
+- }

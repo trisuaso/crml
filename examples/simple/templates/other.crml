@@ -1,4 +1,3 @@
-# let c = page.c
-
-%span
-    {c}
+- let c = page.c
+%div[style="background: red; color: white"]
+    This is from another template. c = {c}
