@@ -35,7 +35,7 @@ use quote::{quote, ToTokens};
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
 
-fn get_file(file: &str) -> File {
+pub(crate) fn get_file(file: &str) -> File {
     File::open(PathBufD::current().extend(&[CONFIG.root_dir.to_string(), format!("{}.crml", file)]))
         .expect("failed to read included file")
 }

@@ -41,15 +41,15 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "crml"
-version = "0.1.6"
+version = "0.1.7"
 dependencies = [
- "crml-core 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "crml-derive 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "crml-core 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)",
+ "crml-derive 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "crml-core"
-version = "0.1.6"
+version = "0.1.7"
 dependencies = [
  "ammonia",
  "pathbufd",
@@ -59,9 +59,9 @@ dependencies = [
 
 [[package]]
 name = "crml-core"
-version = "0.1.6"
+version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c7e518940a38abf88101ef054b386ec0430f17c718d24e5a50c41b4ea8ae0e33"
+checksum = "3dc7aa8e912db72607fd8bc4e2652319e4dad404dc0559de129002086d5bdae2"
 dependencies = [
  "ammonia",
  "pathbufd",
@@ -71,9 +71,9 @@ dependencies = [
 
 [[package]]
 name = "crml-derive"
-version = "0.1.6"
+version = "0.1.7"
 dependencies = [
- "crml-core 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "crml-core 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "pathbufd",
  "proc-macro2",
  "quote",
@@ -84,11 +84,11 @@ dependencies = [
 
 [[package]]
 name = "crml-derive"
-version = "0.1.6"
+version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ee056da3fd0ffa17072dda46184140918c6ed8cabd7d7527f1e3cc0383211eef"
+checksum = "a7fec681f113b70095b72cf4eb3e813a59fb36f81cc27f042bed89146a9a7062"
 dependencies = [
- "crml-core 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "crml-core 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "pathbufd",
  "proc-macro2",
  "quote",

@@ -1,6 +1,6 @@
 [package]
 name = "crml"
-version = "0.1.6"
+version = "0.1.7"
 edition = "2024"
 description = "Crab Markup Language"
 authors = ["trisuaso"]
@@ -10,8 +10,8 @@ repository = "https://github.com/trisuaso/crml"
 [dependencies]
 # crml-derive = { path = "../crml-derive" }
 # crml-core = { path = "../crml-core" }
-crml-derive = "0.1.6"
-crml-core = "0.1.6"
+crml-derive = "0.1.7"
+crml-core = "0.1.7"
 
 [[example]]
 name = "simple"

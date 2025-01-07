@@ -2,6 +2,7 @@ use crml_core::{TokenStream, TokenType, Parser};
 use std::{fs::File, io::Read};
 
 static RAW_BLOCK_TAG_PREFIX: &str = "r:";
+static SLOT_BLOCK_TAG_PREFIX: &str = "s:";
 
 /// Generate valid Rust from a given [`TokenStream`].
 pub struct Generator(TokenStream);
@@ -60,7 +61,7 @@ impl Generator {
     /// pub use crate::TestProps;
     /// ```
     pub fn consume(mut self) -> String {
-        let mut out = format!("let mut crml_rendered = String::new();\n").to_string();
+        let mut out = format!("let mut crml_rendered = String::new();\nlet mut crml_templ_stack: Vec<String> = Vec::new();\n").to_string();
 
         let mut last_indent_levels: Vec<usize> = Vec::new();
         let mut last_tags: Vec<String> = Vec::new();
@@ -74,6 +75,7 @@ impl Generator {
                 && !last_tag.is_empty()
                 && !whitespace_sensitive.contains(&last_tag.as_str())
                 && !last_tag.starts_with(RAW_BLOCK_TAG_PREFIX)
+                && !last_tag.starts_with(SLOT_BLOCK_TAG_PREFIX)
             {
                 // automatically close previous element
                 out.push_str(&format!(
@@ -110,12 +112,63 @@ impl Generator {
                     }
 
                     if let Some(selector) = token.selector {
-                        if !selector.tag.starts_with("/") {
+                        if !selector.tag.starts_with("-") {
                             last_tags.push(selector.tag.clone());
                             last_tag = selector.tag.clone();
 
+                            if selector.tag == "slot" {
+                                // don't render <slot /> elements,
+                                // they should be literally insertted into the rust
+                                // in order to be replaced later
+                                out.push_str(&format!(
+                                    "crml_rendered.push_str(\"<slot {}/>\");\n",
+                                    selector
+                                        .attributes
+                                        .unwrap()
+                                        .get(0)
+                                        .unwrap()
+                                        .replace("\"", "\\\"")
+                                ));
+                                last_tags.pop();
+                                continue;
+                            }
+
                             if selector.tag.starts_with(RAW_BLOCK_TAG_PREFIX) {
                                 // don't actually render this!
+                                continue;
+                            }
+
+                            if selector.tag.starts_with(SLOT_BLOCK_TAG_PREFIX) {
+                                // this is a slot for accepting another template as a base
+                                let classes = selector.classes.unwrap();
+
+                                let file_name = selector.tag.replace("s:", "");
+                                let name = classes.get(0).unwrap();
+
+                                // read file
+                                let generated =
+                                    Generator::from_file(crate::get_file(&file_name)).consume();
+
+                                // push block
+                                // in this block, we use the generated template and then rebuild
+                                // crml_rendered with both parts of the template surrounding the current
+                                // content that we have rendered
+                                out.push_str(&format!(
+                                    "let template_ = {{\n{generated}\n}};
+                                    let template_split_: Vec<&str> = template_.split(\"<slot name=\\\"{name}\\\"/>\").collect();
+                                    let template_half_0_ = template_split_.get(0).unwrap();
+                                    let template_half_1_ = template_split_.get(1).unwrap();
+                                    crml_rendered = format!(\"{{template_half_0_}}\n{{crml_rendered}}\n\");\n
+                                    crml_templ_stack.push(template_half_1_.to_string());\n"
+                                ));
+                                // we push the SECOND HALF of the template to crml_templ_stack
+                                // because that vector is all added (in order of push) to
+                                // the output string
+                                //
+                                // this is done so that everything added after is still
+                                // rendered into the correct template
+
+                                // continue
                                 continue;
                             }
                         } else {
@@ -123,7 +176,7 @@ impl Generator {
 
                             if selector
                                 .tag
-                                .starts_with(&format!("/{RAW_BLOCK_TAG_PREFIX}"))
+                                .starts_with(&format!("-{RAW_BLOCK_TAG_PREFIX}"))
                             {
                                 // don't actually render this!
                                 continue;
@@ -143,6 +196,11 @@ impl Generator {
                         token.html = token.html.replace("{", "{{").replace("}", "}}")
                     }
 
+                    if token.raw.starts_with("-") {
+                        // replace our closing token (-) with the HTML one (/)
+                        token.html = token.html.replacen("-", "/", 1);
+                    }
+
                     out.push_str(&format!(
                         "crml_rendered.push_str(&format!(\"{}\"));//line: {}\n",
                         if last_tag.starts_with(RAW_BLOCK_TAG_PREFIX) {
@@ -160,6 +218,10 @@ impl Generator {
             }
         }
 
-        format!("{out}\ncrml_rendered\n")
+        format!(
+            "{out}\nfor stack_item_ in crml_templ_stack {{
+    crml_rendered.push_str(&stack_item_);
+}}\ncrml_rendered\n"
+        )
     }
 }

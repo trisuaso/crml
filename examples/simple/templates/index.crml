@@ -1,39 +1,32 @@
-@<!DOCTYPE html>
-%html
-    %head
-        %title'Document Title
-    %/head
+%s:first.body_content
 
-    %body
-        - let a = self.a
-        - let b = 2
-        %div.class#id[attr="value"]
-            a is {a}, b is {b}
+- let a = self.a
+- let b = 2
+%div.class#id[attr="value"]
+    a is {a}, b is {b}
 
-        %r:html
-            <b>This block contains unsanitized, raw HTML</b>
-            <script>
-                console.log(This is another way to use whitespace-sensitive elements.");
-            </script>
-        %/r:html
+ %r:html
+     <b>This block contains unsanitized, raw HTML</b>
+     <script>
+         console.log(This is another way to use whitespace-sensitive elements.");
+        </script>
+%-r:html
 
-        - if a != b {
-            %h1'a is not equal to b ({a} != {b})
+- if a != b {
+    %h1'a is not equal to b ({a} != {b})
 
-            // include other template
-            = OtherProps { c: 3 }.render()
+    // include other template
+    = OtherProps { c: 3 }.render()
 
-            // elements which may use special characters need to include "end" to close them
-            // (script, style)
-            %script
-                console.log("Hello, world!");
+    // elements which may use special characters need to include "end" to close them
+    // (script, style)
+    %script
+        console.log("Hello, world!");
 
-                function test(a, b) {
-                    return a + b;
-                }
-            %/script
-        - } else {
-            %h1' a is equal to b ({a} == {b})
-        - }
-    %/body
-%/html
+        function test(a, b) {
+            return a + b;
+        }
+    %-script
+- } else {
+    %h1' a is equal to b ({a} == {b})
+- }

@@ -1,0 +1,10 @@
+@<!DOCTYPE html>
+%html
+    %head
+        %title'Document Title
+    %-head
+
+    %body
+        %slot[name="body_content"]
+    %-body
+%-html
