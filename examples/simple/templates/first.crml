@@ -5,6 +5,6 @@
     %-head
 
     %body
-        %slot[name="body_content"]
+        %slot[name="body_content"]'
     %-body
 %-html

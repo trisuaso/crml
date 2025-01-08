@@ -2,10 +2,12 @@
 
 - let a = self.a
 - let b = 2
+
 %div.class#id[attr="value"]
     a is {a}, b is {b}
+%end
 
- %r:html
+%r:html
      <b>This block contains unsanitized, raw HTML</b>
      <script>
          console.log(This is another way to use whitespace-sensitive elements.");

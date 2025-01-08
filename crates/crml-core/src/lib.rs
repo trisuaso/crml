@@ -1,6 +1,5 @@
 pub mod selector;
 use selector::{Selector, SelectorState};
-use ammonia::Builder;
 
 /// A trait to render template structs.
 pub trait Template {
@@ -8,7 +7,7 @@ pub trait Template {
 }
 
 /// The type of a given [`Token`].
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum TokenType {
     /// A comment in the code. Completely ignored.
     ///
@@ -72,7 +71,7 @@ pub struct Token {
     /// The HTML string of the token.
     pub html: String,
     /// The indent level of the token.
-    pub indent: usize,
+    pub indent: i32,
     /// The line number the token is found on.
     pub line: i32,
     /// The selector of the token. Only applies to [`TokenType::Selector`].
@@ -81,7 +80,7 @@ pub struct Token {
 
 impl Token {
     /// Create a [`Token`] given its `indent` and `line` value.
-    pub fn from_indent_ln(indent: usize, line: i32) -> Self {
+    pub fn from_indent_ln(indent: i32, line: i32) -> Self {
         Self {
             r#type: TokenType::Raw,
             raw: "\n".to_string(),
@@ -93,7 +92,7 @@ impl Token {
     }
 
     /// Create a [`Token`] from a given [`String`] value,
-    pub fn from_string(value: String, indent: usize, line: i32) -> Option<Self> {
+    pub fn from_string(value: String, indent: i32, line: i32) -> Option<Self> {
         let mut chars = value.chars();
 
         match match chars.next() {
@@ -104,6 +103,20 @@ impl Token {
         } {
             '/' => {
                 // comment; ignore
+                if let Some(char) = chars.next() {
+                    if char == '>' {
+                        // raw html element closing, NOT COMMENT!
+                        return Some(Self {
+                            r#type: TokenType::Raw,
+                            raw: value.clone(),
+                            html: value,
+                            indent,
+                            line,
+                            selector: None,
+                        });
+                    }
+                }
+
                 return Some(Self::from_indent_ln(indent, line));
             }
             '-' => {
@@ -147,12 +160,16 @@ impl Token {
                 let mut raw = String::new();
                 let mut data = String::new();
                 let mut inline: bool = false;
+                let mut whitespace_sensitive: bool = false;
 
                 while let Some(char) = chars.next() {
                     // check for inline char (single quote)
                     if char == '\'' {
                         inline = true;
                         break;
+                    } else if char == '~' {
+                        whitespace_sensitive = true;
+                        continue;
                     }
 
                     // push char
@@ -175,7 +192,7 @@ impl Token {
                     } else {
                         selector.clone().render()
                     },
-                    indent,
+                    indent: if whitespace_sensitive { -1 } else { indent },
                     line,
                     selector: Some(selector),
                 });
@@ -199,11 +216,12 @@ impl Token {
             }
             _ => {
                 // no recognizable starting character; raw data
-                let sanitizer = Builder::new();
+                // let sanitizer = Builder::new();
                 return Some(Self {
                     r#type: TokenType::Raw,
                     raw: value.clone(),
-                    html: sanitizer.clean(&value).to_string(),
+                    // html: sanitizer.clean(&value).to_string(),
+                    html: value,
                     indent,
                     line,
                     selector: None,
@@ -274,7 +292,7 @@ impl Parser {
         }
 
         // get indent
-        let mut indent: usize = 0;
+        let mut indent: i32 = 0;
         let mut chars = line.chars();
 
         while let Some(char) = chars.next() {

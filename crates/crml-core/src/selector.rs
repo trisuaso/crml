@@ -117,10 +117,22 @@ impl Selector {
         while let Some(char) = chars.next() {
             match char {
                 '.' => {
+                    if mode == ParserMode::Attribute {
+                        // this may show up in an attribute commonly!
+                        buffer.push(char);
+                        continue;
+                    }
+
                     buffer = state.try_save(mode, buffer.clone());
                     mode = ParserMode::Class
                 }
                 '#' => {
+                    if mode == ParserMode::Attribute {
+                        // this may show up in an attribute commonly!
+                        buffer.push(char);
+                        continue;
+                    }
+
                     buffer = state.try_save(mode, buffer.clone());
                     mode = ParserMode::Id
                 }

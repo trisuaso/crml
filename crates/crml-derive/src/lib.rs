@@ -77,7 +77,7 @@ pub fn template(args: TokenStream, input: TokenStream) -> TokenStream {
         Ok(t) => t,
         Err(e) => {
             // debug outputs
-            if std::fs::exists("crml_dbg").unwrap() == true {
+            if std::fs::exists("crml_dbg").expect("failed to check for debug dir") == true {
                 println!(
                     "Debug directory found. Check \"crml_dbg/{}.rs\" to debug template.",
                     file_name
@@ -87,7 +87,7 @@ pub fn template(args: TokenStream, input: TokenStream) -> TokenStream {
                     format!("crml_dbg/{file_name}.rs"),
                     format!("fn debug() {{\n{generated}\n}}"),
                 )
-                .unwrap()
+                .expect("failed to write debug file")
             }
 
             // panic :(
@@ -107,8 +107,10 @@ pub fn template(args: TokenStream, input: TokenStream) -> TokenStream {
     };
 
     // debug outputs
-    if std::fs::exists("crml_dbg").unwrap() == true {
-        std::fs::write(format!("crml_dbg/{file_name}.rs"), expanded.to_string()).unwrap()
+    if std::fs::exists("crml_dbg").expect("failed to check for debug dir") == true {
+        let file_name = file_name.replace("/", "_");
+        std::fs::write(format!("crml_dbg/{file_name}.rs"), expanded.to_string())
+            .expect("failed to write debug file")
     }
 
     // return

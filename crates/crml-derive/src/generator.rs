@@ -62,33 +62,31 @@ impl Generator {
     /// ```
     pub fn consume(mut self) -> String {
         let mut out = format!("let mut crml_rendered = String::new();\nlet mut crml_templ_stack: Vec<String> = Vec::new();\n").to_string();
-
-        let mut last_indent_levels: Vec<usize> = Vec::new();
         let mut last_tags: Vec<String> = Vec::new();
-        let whitespace_sensitive = &["script", "style", "pre", "html", "body", "head"]; // these must be closed manually
+
+        let whitespace_sensitive = &[
+            // these must be closed manually
+            "script", "style", "pre", "html", "body", "head", "form", "dialog",
+        ];
 
         while let Some(mut token) = self.0.next() {
             let mut last_tag = last_tags.last().unwrap_or(&String::new()).to_owned();
-            let last_indent_level = last_indent_levels.last().unwrap_or(&0).to_owned();
 
-            if (token.indent < last_indent_level)
-                && !last_tag.is_empty()
-                && !whitespace_sensitive.contains(&last_tag.as_str())
-                && !last_tag.starts_with(RAW_BLOCK_TAG_PREFIX)
-                && !last_tag.starts_with(SLOT_BLOCK_TAG_PREFIX)
-            {
+            if last_tag.starts_with(RAW_BLOCK_TAG_PREFIX) {
+                // everything is raw html within raw block
+                token.r#type = TokenType::Html;
+                token.raw = format!(" {}", token.raw);
+                token.html = token.raw.clone();
+            }
+
+            if (token.r#type == TokenType::Selector) && (token.raw == "end") {
                 // automatically close previous element
                 out.push_str(&format!(
                     "crml_rendered.push_str(&format!(\"</{last_tag}>\"));\n"
                 ));
 
                 last_tags.pop();
-                last_indent_levels.pop();
-            }
-
-            if token.indent != last_indent_level {
-                // push this indent level to the stack
-                last_indent_levels.push(token.indent);
+                continue;
             }
 
             match token.r#type {
@@ -106,6 +104,10 @@ impl Generator {
                     ));
                 }
                 _ => {
+                    if token.raw == " " {
+                        continue;
+                    }
+
                     if token.raw == "\n" {
                         out.push_str(&format!("crml_rendered.push_str(\"\\n\");\n"));
                         continue;
@@ -189,11 +191,9 @@ impl Generator {
                         last_tags.pop();
                     }
 
-                    if whitespace_sensitive.contains(&last_tag.as_str())
-                        | last_tag.starts_with(RAW_BLOCK_TAG_PREFIX)
-                    {
+                    if whitespace_sensitive.contains(&last_tag.as_str()) {
                         // whitespace sensitive blocks do not accept format params
-                        token.html = token.html.replace("{", "{{").replace("}", "}}")
+                        token.html = token.html.replace("{", "{{").replace("}", "}}");
                     }
 
                     if token.raw.starts_with("-") {
